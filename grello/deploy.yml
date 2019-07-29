@@ -1,0 +1,32 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: grello
+spec:
+  selector:
+      matchLabels:
+        app: grello
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grello
+    spec:
+      containers:
+        - name: grello
+          image: yakworks/grello
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: grello
+spec:
+  selector:
+    app: grello
+  ports:
+    - port: 8080
+      targetPort: 38080
+  type: NodePort

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grello # a name for the deployment
+spec:
+  replicas: 1 # tells deployment to run 1 pods matching the template
+  selector:
+    matchLabels:
+      app: grello # points to label key in pod template below
+  template: #pod template
+    metadata:
+      labels:
+        app: grello # the pod key 
+    spec: #containers in the pod
+      containers:
+      - image: yakworks/grello
+        name: grello-grails-app #just normal docker name
+        ports:
+          - containerPort: 8080
+            name: server
+          - containerPort: 8081
+            name: jmx
+        volumeMounts:
+          - mountPath: "/rootLocation"
+            name: vol-rootloc
+      volumes:
+      - name: vol-rootloc
+        hostPath:
+          # this works for minikube as /Users is always mounted into the VM is runs in
+          path: "/Users/basejump/github/yak/grails-docker-kuber/grello/rootLocation"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grello # a name for the service
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30080
+  selector:
+    app: grello # points to the label key for deployment
+  type: NodePort
