@@ -15,19 +15,22 @@ spec:
       containers:
       - image: yakworks/grello
         name: grello-grails-app #just normal docker name
+        env:
+          - name: LOGGING_CONFIG
+            value: '/extData/conf/config-logback.groovy'
         ports:
           - containerPort: 8080
             name: server
           - containerPort: 8081
             name: jmx
         volumeMounts:
-          - mountPath: "/rootLocation"
+          - mountPath: "/extData"
             name: vol-rootloc
       volumes:
       - name: vol-rootloc
         hostPath:
-          # this works for minikube as /Users is always mounted into the VM is runs in
-          path: "/Users/basejump/github/yak/grails-docker-kuber/grello/rootLocation"
+          # this works for minikube as /Users is always mounted into the virtual box VM
+          path: "/Users/basejump/github/yak/grails-docker-kuber/grello/extData"
 ---
 
 apiVersion: v1

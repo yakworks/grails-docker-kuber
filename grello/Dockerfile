@@ -9,7 +9,6 @@ COPY build/libs/*.jar app.jar
 
 ENTRYPOINT ["java", "-server", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", \
 	"-Xmx2056m", "-XX:MaxMetaspaceSize=128m", \
-	"-Dlogging.config=/extData/conf/config-logback.groovy", \
 	"-jar","/app.jar"]
 
 # "-Dlogging.config=/extData/conf/config-logback.groovy",

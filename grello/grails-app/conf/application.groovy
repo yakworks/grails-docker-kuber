@@ -7,8 +7,8 @@ grails {
 }
 
 //sets up tomcat logging
-server.tomcat.accesslog.enabled=true
-server.tomcat.accesslog.directory="/extData/logs"
+//server.tomcat.accesslog.enabled=true
+//server.tomcat.accesslog.directory="/extData/logs"
 
 //simple config so we can know if its picking up config
 grello {

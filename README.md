@@ -14,10 +14,20 @@ Example for grails3 app in docker and kubernetes
 
 ## Kubernetes (TODO)
 
-1. setup minikube
-2. `kubectl create -f grello-kub.yml`
+1. [setup minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) on mac use `brew cask install minikube`
+2. on mac docker desktop has kubctl but you need to later version so 
+  - `brew install kubectl` and `brew link --overwrite kubernetes-cli` if brew link fails 
+3. `minikube start`
+4. `kubectl create -f grello-kub.yml`
+5. `minikube service grello`
 
 ## Refs from duckduckgo searches
+
+### kubectl
+
+`kubectl config use-context minikube` switching contexts. basically the pointer to the k8s cluster we want to be using with kubectl
+`kubectl get nodes`
+
 
 ### Logging
 http://docs.grails.org/3.3.10/guide/single.html#externalLoggingConfiguration
