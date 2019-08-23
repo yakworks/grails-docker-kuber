@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: grello-ingress
+  labels:
+    app: grello # add the app=grello label onto the service as well
+spec:
+  rules:
+  - host: grello.9ci.io
+    http:
+      paths:
+      - backend:
+          serviceName: grello
+          servicePort: 8080
+  tls:
+  - hosts:
+    - grello.9ci.io
+    secretName: 9ci-io-wild

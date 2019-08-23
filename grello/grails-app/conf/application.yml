@@ -106,5 +106,14 @@ environments:
             url: jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
     production:
         dataSource:
-            dbCreate: create-drop
+            dbCreate: update
             url: jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+    # production:
+    #    hibernate:
+    #        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    #    dataSource:
+    #        url: jdbc:mysql://127.0.0.1:3306/grello-db
+    #        #url: jdbc:mysql://mysql-grello:3306/grello-db
+    #        driverClassName: com.mysql.jdbc.Driver
+    #        username: root
+    #        password: 123Foobar

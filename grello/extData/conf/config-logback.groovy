@@ -1,61 +1,23 @@
-import ch.qos.logback.classic.filter.ThresholdFilter
+import org.springframework.boot.logging.logback.ColorConverter
+import org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter
 
-//Logback manual: https://logback.qos.ch/manual/index.html
-statusListener ch.qos.logback.core.status.NopStatusListener //turns off logbacks own logging
+scan("5 seconds")
 
-String logsDir = "/extData/logs"
+conversionRule 'clr', ColorConverter
+conversionRule 'wex', WhitespaceThrowableProxyConverter
 
-println "### Using external logback.groovy"
-println "### logs directory is: $logsDir"
-
-
-appender("AppErrors", FileAppender) { //use RollingFileAppender in prodcution
-	file = "${logsDir}/errors.log"
-	append = false
-
-	encoder(PatternLayoutEncoder) {
-		pattern = "%date [%t] [%-5level] %logger{30} - %msg%n %exception{10}"
-	}
-
-	filter(ThresholdFilter) {
-		level = "ERROR"
-	}
-
-	// rollingPolicy(TimeBasedRollingPolicy) {
-	// 	fileNamePattern = "${logsDir}/9ci-errors.log.%d{yyyy-MM-dd}"
-	// }
+//def patternExpression = '%d{HH:mm:ss.SSS} [%t] %-5level %logger{48} - %msg%n'
+def patternExpression = '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} ' + // Date
+                        '%clr(%-5level) ' + // Log level
+                        '%clr(---){faint} %clr([%t]){faint} ' + // Thread
+                        '%clr(%logger{48}){cyan} %clr(:){faint} ' + // Logger
+                        '%m%n%wex' // Message
+appender('STDOUT', ConsoleAppender) {
+    encoder(PatternLayoutEncoder) {
+        charset = java.nio.charset.Charset.forName('UTF-8')
+        pattern = patternExpression
+    }
 }
+root(INFO, ['STDOUT'])
 
-appender("AppInfo", FileAppender) {
-	file = "${logsDir}/info.log"
-	append = false
-
-	encoder(PatternLayoutEncoder) {
-		pattern = "%date [%t] [%-5level] %logger{30} - %msg%n %exception{10}"
-	}
-
-	filter(ThresholdFilter) {
-		level = "INFO"
-	}
-
-	// rollingPolicy(TimeBasedRollingPolicy) {
-	// 	fileNamePattern = "${logsDir}/9ci-info.log.%d{yyyy-MM-dd}"
-	// }
-}
-
-appender("FULL_STACKTRACE", FileAppender) {
-	file = "${logsDir}/stacktrace.log"
-	append = false
-
-	encoder(PatternLayoutEncoder) {
-		pattern = "%date [%t] [%-5level] %logger{30} - %msg%n %exception{full}"
-	}
-
-	// rollingPolicy(TimeBasedRollingPolicy) {
-	// 	fileNamePattern = "${logsDir}/9ci-stacktrace.log.%d{yyyy-MM-dd}"
-	// }
-}
-
-logger("StackTrace", ERROR, ['FULL_STACKTRACE'], false)
-
-root(INFO, ["AppInfo", "AppErrors"])
+logger("grello.HomeController", DEBUG)

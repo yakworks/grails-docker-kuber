@@ -1,70 +1,31 @@
 # grails-docker-kuber
 Example for grails3 app in docker and kubernetes
 
-## Docker
+## Local docker testing
 
-1. create grails app with 3.3.10 `grails create-app grello`
-2. remove extra unneeded stuff, simplify. comment out `apply plugin:"war"` in build.gradle so we build a runnable jar
-3. added `'org.grails.plugins:external-config:1.2.2'` and created `extData` dir
-4. see added `conf/application.groovy` with pointers for external config and tomcat logging. 
-5. cd into grello, run `./gradle build` to generate the runnable jar and sanity check with `java -jar build/libs/grello-0.1.jar`
-6. see Dockerfile, run `docker build -t yakworks/grello .` to build from Dockerfile
-7. sanity check with `docker run --rm -p 8080:8080 -v "$PWD/extData":/extData yakworks/grello`. it should be using the grello-config.groovy and logback-config.groovy and outputting the logging to its logs dir
-8. TODO: use ENVIRONMENT var instead to setup logback.groovy pointer.
+1. `cd grello` can try `./gradlew build` and `java -jar build/libs/grello-0.1.jar` too see that grails app works
 
-## Kubernetes (TODO)
+2. Or just build jar and the docker with `./build.sh` (comment out the push if you just want to test locally but will need to pus when deployeing to k8s)
 
-1. [setup minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) on mac use `brew cask install minikube`
-2. on mac docker desktop has kubctl but you need to later version so 
-  - `brew install kubectl` and `brew link --overwrite kubernetes-cli` if brew link fails 
-3. `minikube start`
-4. `kubectl create -f grello-kub.yml`
-5. `minikube service grello`
+3. try running the docker with `./dock-run-app.sh`
 
-## Refs from duckduckgo searches
+4. cd to mysql and `./build.sh` again comment out the push if you just want to try locally.
 
-### kubectl
+5. go to root dir and try `./dock-run-app-mysql.sh` to run the 2 dockers for a mysql and external config example
 
-`kubectl config use-context minikube` switching contexts. basically the pointer to the k8s cluster we want to be using with kubectl
-`kubectl get nodes`
+## Kubernetes
 
+1. make sure you are setup to talk to your minikube or rancher/kubernetes cluster with the `kubectl config use-context .....`, run `./k8s/clean.sh` if the k8s cluster already has grello on it
 
-### Logging
-http://docs.grails.org/3.3.10/guide/single.html#externalLoggingConfiguration
-https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-logging.html
+2. for the same simple example without mysql try `./kub-grello-simple.sh`. see script for what its doing. 
+   When run against rancher it go to https://grello.9ci.io
 
-For externalizing logback https://stackoverflow.com/questions/38853935/grails-3-external-logback-groovy-file
+3. NOTE: MINICUBE: instructions not tested with minikube. will need to do something like `kubectl expose deployment grello --type=NodePort` and then `minikube service grello`. might need to comment out part that creates ingress too.
 
-#### Tomcat
-default for grails 3 which uses springboot 1.5.21 is embed-tomcat 8.5.40
-https://docs.spring.io/spring-boot/docs/1.5.21.RELEASE/reference/html/howto-embedded-servlet-containers.html#howto-configure-accesslogs
+4. do a cleanup with `./k8s/clean.sh` to remove what just got pushed to kubernetes
 
-https://stackoverflow.com/questions/36780680/how-do-you-tell-spring-boot-to-send-the-embedded-tomcats-access-logs-to-stdout
- https://github.com/spring-projects/spring-boot/issues/13365
+5. to do a full mysql apply run `./kub-grello-mysql.sh`
 
-```
-server.tomcat.accesslog.enabled=true
-server.tomcat.accesslog.directory=/rootLocation/logs
-```
+6. wait for a bit or check rancher to see when ready and visit. https://grello.9ci.io
 
-### Loader and PropertiesLauncher
-//see https://stackoverflow.com/questions/40994851/spring-boot-executable-jar-layout-changes-break-classpath
-//https://stackoverflow.com/questions/36168310/how-to-specify-the-launcher-in-spring-boot-gradle
-// springBoot{
-//     layout = "ZIP" //triggers jar launcher to use PropertiesLauncher
-// }
-then can use "-Dloader.path=/rootLocation/conf/, /rootLocation/conf/"
-
-### Kuber
-good intro https://medium.com/google-cloud/kubernetes-101-pods-nodes-containers-and-clusters-c1509e409e16
-
-https://www.youtube.com/watch?v=RelPurLZnII
-https://github.com/trisberg/s1p2017-boot-k8s/blob/master/demo-hello.adoc
-
-https://itnext.io/migrating-a-spring-boot-service-to-kubernetes-in-5-steps-7c1702da81b6
-https://github.com/sbrosinski/spring-boot-on-k8s
-
-https://www.cebuscripts.com/2019/04/20/how-to-automate-deployments-to-digitalocean-kubernetes-with-circleci/
-
-### persistent volumes
-https://supergiant.io/blog/persistent-storage-with-persistent-volumes-in-kubernetes/
+7. to connect to the mysql try `kubectl get pods` and copy the mysql pod and do `kubectl port-forward grello-mysql-66cc57fb85-bzmvq 7306:3306` . now you should be able to connect from something like SequelPro to localhost:7306 and it will be forwarded to the mysql database we jsut deployed. In theory same thing would work for Sql Server as well

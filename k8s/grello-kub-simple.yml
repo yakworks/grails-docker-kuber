@@ -1,48 +1,42 @@
+
+# Grello grails app
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grello # a name for the deployment
+  labels:
+    app: grello # tag with the app:grello, labels are kind of like tags
 spec:
   replicas: 1 # tells deployment to run 1 pods matching the template
   selector:
     matchLabels:
       app: grello # points to label key in pod template below
-  template: #pod template
+  template: # pod template
     metadata:
+      name: grello-pod
       labels:
-        app: grello # the pod key 
-    spec: #containers in the pod
+        app: grello # the pod key label, labels are like tags
+    spec: # containers in the pod
       containers:
       - image: yakworks/grello
         name: grello-grails-app #just normal docker name
-        env:
-          - name: LOGGING_CONFIG
-            value: '/extData/conf/config-logback.groovy'
         ports:
           - containerPort: 8080
             name: server
-          - containerPort: 8081
-            name: jmx
-        volumeMounts:
-          - mountPath: "/extData"
-            name: vol-rootloc
-      volumes:
-      - name: vol-rootloc
-        hostPath:
-          # this works for minikube as /Users is always mounted into the virtual box VM
-          path: "/Users/basejump/github/yak/grails-docker-kuber/grello/extData"
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
   name: grello # a name for the service
+  labels:
+    app: grello # tag the app:grello label onto the service as well
 spec:
+  #type: NodePort
+  type: ClusterIP
   ports:
     - port: 8080
       protocol: TCP
       targetPort: 8080
-      nodePort: 30080
   selector:
     app: grello # points to the label key for deployment
-  type: NodePort

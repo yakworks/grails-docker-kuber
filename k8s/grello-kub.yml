@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grello-config
+  labels:
+    app: grello # tag with the app:grello, labels are kind of like tags
+data:
+  db-name: foo
+  db-path: bar
+  logback.groovy: |+
+    scan("5 seconds")
+    appender('STDOUT', ConsoleAppender) {
+        encoder(PatternLayoutEncoder) {
+            charset = java.nio.charset.Charset.forName('UTF-8')
+            pattern = '%d{HH:mm:ss.SSS} [%t] %-5level %logger{48} - %msg%n'
+        }
+    }
+    root(INFO, ['STDOUT'])
+
+    logger("grello.HomeController", DEBUG)
+
+  grello-config.groovy: |+
+    println "### reading external config grello-config.groovy"
+    grello {
+      message = "Hi from extData grello-config.groovy"
+    }
+    dataSource{
+      url = "jdbc:mysql://grello-mysql:3306/grello-db"
+      driverClassName= "com.mysql.jdbc.Driver"
+      username = "root"
+      password = "123Foobar"
+    }
+    hibernate.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+
+---
+# Grello grails app
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grello # a name for the deployment
+  labels:
+    app: grello # tag with the app:grello, labels are kind of like tags
+spec:
+  replicas: 1 # tells deployment to run 1 pods matching the template
+  selector:
+    matchLabels:
+      app: grello # points to label key in pod template below
+  template: # pod template
+    metadata:
+      name: grello-pod
+      labels:
+        app: grello # the pod key label, labels are like tags
+    spec: # containers in the pod
+      initContainers: # runs before containers, wait for mysql to start
+      - name: mysql-readiness-check
+        image: yakworks/readiness-check # ubuntu yakworks/dnsutils # tutum/dnsutils # 
+        env:
+        - name: SERVICE_NAME
+          value: grello-mysql # the service to dig
+      
+      containers:
+      - image: yakworks/grello
+        name: grello-grails-app #just normal docker name
+        env:
+          - name: LOGGING_CONFIG
+            value: '/extData/conf/logback.groovy'
+        ports:
+          - containerPort: 8080
+            name: server
+          - containerPort: 8081
+            name: jmx
+        volumeMounts:
+          # - mountPath: "/extData"
+          #   name: vol-rootloc
+          - mountPath: "/extData/conf"
+            name: extdata-conf
+      volumes:
+      - name: extdata-conf
+        configMap:
+          name: grello-config
+      # - name: vol-rootloc
+      #   hostPath:
+      #     # this works for minikube as /Users is always mounted into the virtual box VM
+      #     path: "/Users/basejump/github/yak/grails-docker-kuber/grello/extData"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grello # a name for the service
+  labels:
+    app: grello # tag the app:grello label onto the service as well
+spec:
+  #type: NodePort
+  type: ClusterIP
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: grello # points to the label key for deployment
